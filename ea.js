@@ -629,11 +629,25 @@ const MOTION = {
         slideStep: 0.07,
         slideFrom: '100vw',
         slideTo: '-100vw',
+        slideFromY: '100vh',
+        slideToY: '-100vh',
         endHold: 0.05
       };
 
       gsap.context(function () {
         var mobile = isMobile();
+        var verticalSlides = window.matchMedia('(min-width: 768px)').matches;
+        var slideAxis = verticalSlides ? 'y' : 'x';
+        var slideEnter = verticalSlides ? CFG.slideFromY : CFG.slideFrom;
+        var slideExit = verticalSlides ? CFG.slideToY : CFG.slideTo;
+
+        function slideVars(to, ease) {
+          var vars = { duration: DUR.slideMove, ease: ease };
+
+          vars[slideAxis] = to;
+
+          return vars;
+        }
 
         gsap.set(land, { y: CFG.landFrom, opacity: 1 });
 
@@ -654,7 +668,11 @@ const MOTION = {
 
         gsap.set(bodies, { opacity: 0 });
 
-        gsap.set(slides, { x: CFG.slideFrom, y: 0, yPercent: -50, opacity: 1 });
+        var slideStart = { x: 0, y: 0, yPercent: -50, opacity: 1 };
+
+        slideStart[slideAxis] = slideEnter;
+
+        gsap.set(slides, slideStart);
 
         var nukeTimeline = scrollTimeline(track, CFG.scrub, { id: 'nuke-main-' + index });
 
@@ -697,16 +715,12 @@ const MOTION = {
             });
           }
 
-          nukeTimeline.to(slide, { x: 0, duration: DUR.slideMove, ease: 'power3.out' }, at);
+          nukeTimeline.to(slide, slideVars(0, 'power3.out'), at);
 
           if (!last) {
             var outAt = at + CFG.slideStep;
 
-            nukeTimeline.to(
-              slide,
-              { x: CFG.slideTo, duration: DUR.slideMove, ease: 'power3.in' },
-              outAt
-            );
+            nukeTimeline.to(slide, slideVars(slideExit, 'power3.in'), outAt);
 
             if (body) {
               fadeOutAt(nukeTimeline, body, outAt, {
