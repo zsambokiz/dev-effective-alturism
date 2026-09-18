@@ -631,12 +631,16 @@ const MOTION = {
         slideTo: '-100vw',
         slideFromY: '100vh',
         slideToY: '-100vh',
-        endHold: 0.05
+        endHold: 0.05,
+        verticalQuery: '(min-width: 768px)',
+        mobileQuery: '(max-width: 991px)'
       };
 
-      gsap.context(function () {
-        var mobile = isMobile();
-        var verticalSlides = window.matchMedia('(min-width: 768px)').matches;
+      var mm = gsap.matchMedia();
+
+      mm.add({ vertical: CFG.verticalQuery, mobile: CFG.mobileQuery }, function (context) {
+        var mobile = context.conditions.mobile;
+        var verticalSlides = context.conditions.vertical;
         var slideAxis = verticalSlides ? 'y' : 'x';
         var slideEnter = verticalSlides ? CFG.slideFromY : CFG.slideFrom;
         var slideExit = verticalSlides ? CFG.slideToY : CFG.slideTo;
