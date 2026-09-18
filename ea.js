@@ -3497,9 +3497,7 @@ const MOTION = {
     }
 
     var ZOOM = 1.5;
-    var DESKTOP_LENS_SIZE = 180;
-    var MOBILE_LENS_SIZE = 150;
-    var MOBILE_LENS_LIFT = 115;
+    var LENS_SIZE = 180;
     var mobileQuery = window.matchMedia('(max-width: 991px)');
     var lens = document.createElement('div');
 
@@ -3621,7 +3619,7 @@ const MOTION = {
       return { x: x, y: y, width: width, height: height, rotation: rotation };
     }
 
-    function updateLens(clientX, clientY, isTouch) {
+    function updateLens(clientX, clientY) {
       var point = getImagePoint(clientX, clientY);
 
       if (!point) {
@@ -3631,13 +3629,9 @@ const MOTION = {
       }
 
       var wrapperRect = wrapper.getBoundingClientRect();
-      var lensSize = isTouch ? MOBILE_LENS_SIZE : DESKTOP_LENS_SIZE;
+      var lensSize = LENS_SIZE;
       var lensLeft = clientX - wrapperRect.left - lensSize / 2;
       var lensTop = clientY - wrapperRect.top - lensSize / 2;
-
-      if (isTouch) {
-        lensTop -= MOBILE_LENS_LIFT;
-      }
 
       lensLeft = Math.max(0, Math.min(wrapperRect.width - lensSize, lensLeft));
 
@@ -3670,8 +3664,8 @@ const MOTION = {
     var pendingPoint = null;
     var rafId = null;
 
-    function queueLensUpdate(x, y, isTouch) {
-      pendingPoint = { x: x, y: y, isTouch: isTouch };
+    function queueLensUpdate(x, y) {
+      pendingPoint = { x: x, y: y };
 
       if (rafId) {
         return;
@@ -3684,7 +3678,7 @@ const MOTION = {
           return;
         }
 
-        updateLens(pendingPoint.x, pendingPoint.y, pendingPoint.isTouch);
+        updateLens(pendingPoint.x, pendingPoint.y);
 
         pendingPoint = null;
       });
@@ -3695,7 +3689,7 @@ const MOTION = {
         return;
       }
 
-      queueLensUpdate(event.clientX, event.clientY, false);
+      queueLensUpdate(event.clientX, event.clientY);
     });
 
     wrapper.addEventListener('mouseleave', function () {
@@ -3705,46 +3699,6 @@ const MOTION = {
 
       lens.classList.remove('is-visible');
     });
-
-    wrapper.addEventListener(
-      'touchstart',
-      function (event) {
-        if (!isMobile() || !event.touches.length) {
-          return;
-        }
-
-        var touch = event.touches[0];
-
-        queueLensUpdate(touch.clientX, touch.clientY, true);
-      },
-      { passive: true }
-    );
-
-    wrapper.addEventListener(
-      'touchmove',
-      function (event) {
-        if (!isMobile() || !event.touches.length) {
-          return;
-        }
-
-        var touch = event.touches[0];
-
-        queueLensUpdate(touch.clientX, touch.clientY, true);
-      },
-      { passive: true }
-    );
-
-    function hideMobileLens() {
-      if (!isMobile()) {
-        return;
-      }
-
-      lens.classList.remove('is-visible');
-    }
-
-    wrapper.addEventListener('touchend', hideMobileLens, { passive: true });
-
-    wrapper.addEventListener('touchcancel', hideMobileLens, { passive: true });
 
     mobileQuery.addEventListener('change', function () {
       lens.classList.remove('is-visible');
